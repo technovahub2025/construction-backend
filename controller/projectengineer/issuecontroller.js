@@ -6,6 +6,32 @@ const ClientIssue = require("../../model/projectengineer/issuemodel");
 
 const uploadDir = path.join(process.cwd(), "uploads", "issue-images");
 
+const extractProjectIdFromUrl = (value) => {
+  if (typeof value !== "string" || !value.trim()) {
+    return "";
+  }
+
+  try {
+    const url = new URL(value);
+    return url.searchParams.get("projectId")?.trim() || "";
+  } catch (_) {
+    return "";
+  }
+};
+
+const resolveProjectId = (req) => {
+  const directProjectId =
+    req.body?.projectId ||
+    req.query?.projectId ||
+    req.headers["x-project-id"];
+
+  if (typeof directProjectId === "string" && directProjectId.trim()) {
+    return directProjectId.trim();
+  }
+
+  return extractProjectIdFromUrl(req.headers.referer);
+};
+
 const ensureUploadDir = async () => {
   await fs.promises.mkdir(uploadDir, { recursive: true });
 };
@@ -107,6 +133,7 @@ const createClientIssue = async (req, res) => {
       req.body.issueText || req.body.issue_text || req.body.issue;
     const siteEngineer =
       typeof req.body.siteEngineer === "string" ? req.body.siteEngineer.trim() : "";
+    const projectId = resolveProjectId(req);
 
     if (!issueText || typeof issueText !== "string" || !issueText.trim()) {
       return res.status(400).json({
@@ -122,11 +149,18 @@ const createClientIssue = async (req, res) => {
       });
     }
 
+    if (!projectId) {
+      return res.status(400).json({
+        success: false,
+        message: "projectId is required",
+      });
+    }
+
     await ensureUploadDir();
     const images = await resolveImages(req);
 
     const issue = await ClientIssue.create({
-      projectId: req.body.projectId || null,
+      projectId,
       siteEngineer,
       issueText: issueText.trim(),
       images,
@@ -147,7 +181,17 @@ const createClientIssue = async (req, res) => {
 
 const getClientIssues = async (req, res) => {
   try {
-    const issues = await ClientIssue.find();
+    const projectId = resolveProjectId(req);
+    if (!projectId) {
+      return res.status(200).json({
+        success: true,
+        data: [],
+      });
+    }
+
+    const query = { projectId };
+
+    const issues = await ClientIssue.find(query).sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -181,3 +225,4 @@ module.exports = {
   getClientIssues,
   deleteAllClientIssues,
 };
+

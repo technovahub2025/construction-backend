@@ -1,3 +1,4 @@
+
 const Project = require("../../model/projectengineer/projectassignmodel");
 const Measurement = require("../../model/projectengineer/measurementmodel");
 const Labour = require("../../model/projectengineer/labourmodel");
@@ -285,14 +286,6 @@ const getProjectOverview = async (req, res) => {
           createdAt: -1,
         });
 
-        if (issues.length === 0 && project.siteEngineer) {
-          issues = await ClientIssue.find({
-            siteEngineer: project.siteEngineer,
-          }).sort({
-            createdAt: -1,
-          });
-        }
-
         return {
           projectId: project._id,
           projectname: project.projectname,
@@ -335,3 +328,4 @@ module.exports = {
   getSiteEngineers,
   getProjectOverview,
 };
+
