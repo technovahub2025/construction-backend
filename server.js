@@ -3,9 +3,6 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
-const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
 
 const connectDB = require("./config/db");
 const apiMiddleware = require("./middleware/apiMiddleware");
@@ -52,23 +49,9 @@ const { createSwaggerSpec, swaggerHtml } = require("./swagger");
 
 const app = express();
 
-const uploadsDir = path.join(process.cwd(), "uploads");
-
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname) || ".png";
-    cb(null, `${Date.now()}-${crypto.randomUUID()}${ext}`);
-  },
+const upload = multer({
+  storage: multer.memoryStorage(),
 });
-
-const upload = multer({ storage });
 
 app.get("/api-docs.json", (req, res) => {
   const baseUrl =
@@ -83,7 +66,6 @@ app.get("/api-docs", (req, res) => {
 app.use(cors());
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ extended: true, limit: "20mb" }));
-app.use("/uploads", express.static(uploadsDir));
 app.use("/api", apiMiddleware);
 
 app.post("/api/projectengineerlogin", login);

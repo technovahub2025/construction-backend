@@ -114,8 +114,27 @@ const createSwaggerSpec = (baseUrl) => ({
     "/api/submitworkflow": {
       put: {
         tags: ["Workflow"],
-        summary: "Submit workflow",
-        responses: { 200: { description: "Workflow submitted" } },
+        summary: "Update overall project status",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["projectId", "siteEngineer", "status"],
+                properties: {
+                  projectId: { type: "string" },
+                  siteEngineer: { type: "string" },
+                  status: {
+                    type: "string",
+                    enum: ["pending", "inprogress", "hold", "completed"],
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: { 200: { description: "Workflow status updated" } },
       },
     },
     "/api/submitissue": {
@@ -140,6 +159,22 @@ const createSwaggerSpec = (baseUrl) => ({
       get: {
         tags: ["Issue"],
         summary: "List client issues",
+        parameters: [
+          {
+            name: "projectId",
+            in: "query",
+            required: false,
+            schema: { type: "string" },
+            description: "Filter issues by project ID",
+          },
+          {
+            name: "siteEngineer",
+            in: "query",
+            required: false,
+            schema: { type: "string" },
+            description: "Optional filter by site engineer name",
+          },
+        ],
         responses: { 200: { description: "Issue list" } },
       },
     },
@@ -164,7 +199,7 @@ const createSwaggerSpec = (baseUrl) => ({
       },
       ClientIssue: {
         type: "object",
-        required: ["siteEngineer", "issueText"],
+        required: ["projectId", "siteEngineer", "issueText"],
         properties: {
           projectId: {
             type: "string",
@@ -180,10 +215,13 @@ const createSwaggerSpec = (baseUrl) => ({
           },
           images: {
             type: "array",
-            items: { type: "string", example: "https://example.com/image1.jpg" },
+            items: {
+              type: "string",
+              example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA",
+            },
             example: [
-              "https://example.com/image1.jpg",
-              "https://example.com/image2.jpg",
+              "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA",
+              "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD",
             ],
           },
         },

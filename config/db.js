@@ -9,8 +9,8 @@ const connectDB = async () => {
     mongoose.set("bufferCommands", false);
 
     await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 10000,
-      connectTimeoutMS: 10000,
+      serverSelectionTimeoutMS: 10000000,
+      connectTimeoutMS: 10000000,
     });
     console.log("MongoDB connected");
   } catch (error) {

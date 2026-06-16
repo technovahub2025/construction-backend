@@ -1,6 +1,8 @@
 const Measurement = require("../../model/projectengineer/measurementmodel");
 const Labour = require("../../model/projectengineer/labourmodel");
 const Material = require("../../model/projectengineer/materialmodel");
+const Project = require("../../model/projectengineer/projectassignmodel");
+const ALLOWED_STATUS = ["pending", "inprogress", "hold", "completed"];
 
 const getWorkflowPreview = async (req, res) => {
   try {
@@ -13,7 +15,8 @@ const getWorkflowPreview = async (req, res) => {
       });
     }
 
-    const [measurements, labours, materials] = await Promise.all([
+    const [project, measurements, labours, materials] = await Promise.all([
+      Project.findOne({ _id: projectId, siteEngineer }),
       Measurement.find({ projectId, siteEngineer }).sort({ createdAt: -1 }),
       Labour.find({ projectId, siteEngineer }).sort({ createdAt: -1 }),
       Material.find({ projectId, siteEngineer }).sort({ createdAt: -1 }),
@@ -22,6 +25,7 @@ const getWorkflowPreview = async (req, res) => {
     const preview = {
       projectId,
       siteEngineer,
+      status: project?.status ?? "pending",
       measurement: measurements,
       labour: labours,
       material: materials,
@@ -48,7 +52,7 @@ const getWorkflowPreview = async (req, res) => {
 
 const submitWorkflow = async (req, res) => {
   try {
-    const { projectId, siteEngineer } = req.body;
+    const { projectId, siteEngineer, status = "completed" } = req.body;
 
     if (!projectId || !siteEngineer) {
       return res.status(400).json({
@@ -57,43 +61,53 @@ const submitWorkflow = async (req, res) => {
       });
     }
 
-    const [measurements, labours, materials] = await Promise.all([
+    const normalizedStatus = String(status).toLowerCase();
+
+    if (!ALLOWED_STATUS.includes(normalizedStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: `Status must be one of: ${ALLOWED_STATUS.join(", ")}`,
+      });
+    }
+
+    const [project, measurements, labours, materials] = await Promise.all([
+      Project.findOne({ _id: projectId, siteEngineer }),
       Measurement.find({ projectId, siteEngineer }).sort({ createdAt: -1 }),
       Labour.find({ projectId, siteEngineer }).sort({ createdAt: -1 }),
       Material.find({ projectId, siteEngineer }).sort({ createdAt: -1 }),
     ]);
 
-    if (measurements.length === 0 || labours.length === 0 || materials.length === 0) {
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found",
+      });
+    }
+
+    if (
+      normalizedStatus === "completed" &&
+      (measurements.length === 0 || labours.length === 0 || materials.length === 0)
+    ) {
       return res.status(400).json({
         success: false,
         message: "Please complete measurement, labour, and material before submit",
       });
     }
 
-    const [measurementResult, labourResult, materialResult] = await Promise.all([
-      Measurement.updateMany(
-        { projectId, siteEngineer },
-        { $set: { status: "submitted" } }
-      ),
-      Labour.updateMany(
-        { projectId, siteEngineer },
-        { $set: { status: "submitted" } }
-      ),
-      Material.updateMany(
-        { projectId, siteEngineer },
-        { $set: { status: "submitted" } }
-      ),
-    ]);
+    const updatedProject = await Project.findOneAndUpdate(
+      { _id: projectId, siteEngineer },
+      { $set: { status: normalizedStatus } },
+      { new: true, runValidators: true }
+    );
 
     res.status(200).json({
       success: true,
-      message: "Workflow submitted successfully",
+      message: "Workflow status updated successfully",
       data: {
         projectId,
         siteEngineer,
-        measurementUpdated: measurementResult.modifiedCount,
-        labourUpdated: labourResult.modifiedCount,
-        materialUpdated: materialResult.modifiedCount,
+        status: normalizedStatus,
+        projectUpdated: updatedProject?._id ? 1 : 0,
         preview: {
           measurement: measurements,
           labour: labours,

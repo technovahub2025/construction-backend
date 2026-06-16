@@ -39,6 +39,12 @@ const projectSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    status: {
+      type: String,
+      enum: ["pending", "inprogress", "hold", "completed"],
+      default: "pending",
+    },
   },
   { timestamps: true }
 );

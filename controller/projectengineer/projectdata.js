@@ -1,4 +1,3 @@
-
 const Project = require("../../model/projectengineer/projectassignmodel");
 const Measurement = require("../../model/projectengineer/measurementmodel");
 const Labour = require("../../model/projectengineer/labourmodel");
@@ -294,6 +293,7 @@ const getProjectOverview = async (req, res) => {
           projectType: project.projectType,
           siteEngineer: project.siteEngineer,
           isAssigned: project.isAssigned,
+          status: project.status,
           createdAt: project.createdAt,
           updatedAt: project.updatedAt,
           measurement: measurements,
@@ -328,4 +328,3 @@ module.exports = {
   getSiteEngineers,
   getProjectOverview,
 };
-

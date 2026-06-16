@@ -1,10 +1,4 @@
-const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
-
 const ClientIssue = require("../../model/projectengineer/issuemodel");
-
-const uploadDir = path.join(process.cwd(), "uploads", "issue-images");
 
 const extractProjectIdFromUrl = (value) => {
   if (typeof value !== "string" || !value.trim()) {
@@ -32,15 +26,12 @@ const resolveProjectId = (req) => {
   return extractProjectIdFromUrl(req.headers.referer);
 };
 
-const ensureUploadDir = async () => {
-  await fs.promises.mkdir(uploadDir, { recursive: true });
-};
-
 const normalizeImages = (req) => {
   if (Array.isArray(req.files) && req.files.length > 0) {
     return req.files.map((file) => {
-      const filename = file.filename || file.originalname || "";
-      return `uploads/${filename}`;
+      const mimeType = file.mimetype || "image/png";
+      const base64 = file.buffer.toString("base64");
+      return `data:${mimeType};base64,${base64}`;
     });
   }
 
@@ -60,7 +51,7 @@ const normalizeImages = (req) => {
   return [];
 };
 
-const decodeBase64Image = async (value) => {
+const normalizeBase64Image = (value) => {
   const rawValue = value.trim();
   const dataUrlMatch = rawValue.match(
     /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.*)$/
@@ -74,25 +65,10 @@ const decodeBase64Image = async (value) => {
     base64Data = dataUrlMatch[2];
   }
 
-  const extensionMap = {
-    "image/jpeg": "jpg",
-    "image/jpg": "jpg",
-    "image/png": "png",
-    "image/webp": "webp",
-    "image/gif": "gif",
-  };
-
-  const extension = extensionMap[mimeType] || "png";
-  const fileName = `${Date.now()}-${crypto.randomUUID()}.${extension}`;
-  const filePath = path.join(uploadDir, fileName);
-  const buffer = Buffer.from(base64Data, "base64");
-
-  await fs.promises.writeFile(filePath, buffer);
-
-  return `uploads/issue-images/${fileName}`;
+  return `data:${mimeType};base64,${base64Data}`;
 };
 
-const resolveImages = async (req) => {
+const resolveImages = (req) => {
   const images = normalizeImages(req);
 
   if (images.length > 3) {
@@ -117,7 +93,7 @@ const resolveImages = async (req) => {
       trimmed.startsWith("data:image/") ||
       /^[A-Za-z0-9+/=\s]+$/.test(trimmed)
     ) {
-      resolved.push(await decodeBase64Image(trimmed));
+      resolved.push(normalizeBase64Image(trimmed));
       continue;
     }
 
@@ -156,8 +132,7 @@ const createClientIssue = async (req, res) => {
       });
     }
 
-    await ensureUploadDir();
-    const images = await resolveImages(req);
+    const images = resolveImages(req);
 
     const issue = await ClientIssue.create({
       projectId,
@@ -225,4 +200,3 @@ module.exports = {
   getClientIssues,
   deleteAllClientIssues,
 };
-
