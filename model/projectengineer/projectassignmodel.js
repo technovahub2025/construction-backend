@@ -41,7 +41,7 @@ const projectSchema = new mongoose.Schema(
     },
 
     approved:{
-      type:Boolen,
+      type: Boolean,
       default:false,
     },
 
