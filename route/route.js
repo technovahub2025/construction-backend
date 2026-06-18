@@ -1,6 +1,6 @@
 const express = require("express");
 const { login } = require("../controller/projectengineer/projectengineer");
-const { createProject, editProject, assignProject, getProjectOverview, getProjects } = require("../controller/projectengineer/projectdata");
+const { createProject, editProject, assignProject, getProjectOverview, getProjects, approveProject } = require("../controller/projectengineer/projectdata");
 const { createLabour, updateLabour } = require("../controller/projectengineer/labourcontroller");
 const { createMaterial, updateMaterial } = require("../controller/projectengineer/materialcontroller");
 const { createMeasurement, updateMeasurement } = require("../controller/projectengineer/measurementcontroller");
@@ -34,6 +34,7 @@ router.post("/submitissue",createClientIssue);
 router.get("/workflowpreview", getWorkflowPreview);
 router.put("/submitworkflow", submitWorkflow);
 
+router.put("/approveproject/:id",approveProject);
 
 router.get("/getissue",getClientIssues);
 

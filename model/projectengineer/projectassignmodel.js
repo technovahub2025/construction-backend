@@ -40,6 +40,11 @@ const projectSchema = new mongoose.Schema(
       default: false,
     },
 
+    approved:{
+      type:Boolen,
+      default:false,
+    },
+
     status: {
       type: String,
       enum: ["pending", "inprogress", "hold", "completed"],

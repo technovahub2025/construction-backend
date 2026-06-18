@@ -38,7 +38,39 @@ const createProject = async (req, res) => {
     });
   }
 };
+const approveProject = async (req, res) => {
+  try {
+    const { id } = req.params;
 
+    const project = await Project.findByIdAndUpdate(
+      id,
+      {
+        approved: true,
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Project approved successfully",
+      data: project,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 const editProject = async (req, res) => {
   try {
     const { id } = req.params;
@@ -322,6 +354,7 @@ module.exports = {
   editProject,
   deleteProject,
   assignProject,
+  approveProject,
   getProjects,
   getProjectCounts,
   getAssignedProjects,

@@ -14,6 +14,7 @@ const {
   createProject,
   editProject,
   assignProject,
+  approveProject,
   getProjectOverview,
   getProjectCounts,
   getProjects,
@@ -79,6 +80,7 @@ app.get("/api/getprojects",getProjects);
 app.post("/api/createproject", createProject);
 app.put("/api/updateproject/:id", editProject);
 app.put("/api/assignproject/:id", assignProject);
+app.put("/api/approveproject/:id", approveProject);
 app.get("/api/viewproject", getProjectOverview);
 
 app.post("/api/cretaelabour", createLabour);
