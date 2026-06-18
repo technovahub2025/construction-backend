@@ -3,7 +3,6 @@ const estimatorlogin = async (req, res) => {
     const { phone, password } = req.body;
 
     const STATIC_MANAGER = {
-      
       phone: "9876543201",
       password: "est@2026",
     };
@@ -26,15 +25,17 @@ const estimatorlogin = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Login successful",
       user: {
         phone: STATIC_MANAGER.phone,
+        role: "estimator",   
       },
     });
+
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
