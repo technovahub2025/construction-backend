@@ -98,7 +98,10 @@ app.get("/api/workflowpreview", getWorkflowPreview);
 app.put("/api/submitworkflow", submitWorkflow);
 
 const PORT = process.env.PORT || 5000;
+app.get("/",(req,res)=>{
 
+  res.send(200).json({ message: "Server is running" });
+});
 const startServer = async () => {
   await connectDB();
 
