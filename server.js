@@ -99,6 +99,10 @@ app.delete("/api/deleteissue", deleteAllClientIssues);
 app.get("/api/workflowpreview", getWorkflowPreview);
 app.put("/api/submitworkflow", submitWorkflow);
 
+
+app.post("/api/estimatorlogin",estimatorlogin);
+
+
 const PORT = process.env.PORT || 5000;
 app.get("/",(req,res)=>{
 

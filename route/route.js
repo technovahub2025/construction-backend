@@ -14,7 +14,7 @@ const router = express.Router();
 router.post("/projectengineerlogin", login);
 
 router.post("/siteadminlogin",sitelogin);
-router.post("estimatorlogin",estimatorlogin);
+router.post("/estimatorlogin",estimatorlogin);
 
 router.post("/createproject", createProject);
 router.put("/updateproject/:id", editProject);
