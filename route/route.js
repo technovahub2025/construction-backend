@@ -7,13 +7,14 @@ const { createMeasurement, updateMeasurement } = require("../controller/projecte
 const { createClientIssue, getClientIssues } = require("../controller/projectengineer/issuecontroller");
 const { sitelogin } = require("../controller/projectengineer/siteengineer");
 const { getWorkflowPreview, submitWorkflow } = require("../controller/projectengineer/workflowcontroller");
+const { estimatorlogin } = require("../controller/projectengineer/estimatorlogin");
 const router = express.Router();
 
 
 router.post("/projectengineerlogin", login);
 
 router.post("/siteadminlogin",sitelogin);
-
+router.post("estimatorlogin",estimatorlogin);
 
 router.post("/createproject", createProject);
 router.put("/updateproject/:id", editProject);
